@@ -143,7 +143,8 @@
       clearTimeout(hint);
 
       if (data.success) {
-        showResultImage('resultArea', data.result_image, `✓ Wearing: ${data.product.name}`);
+        const debugType = data.cloth_type ? ` • mask: ${data.cloth_type}` : '';
+        showResultImage('resultArea', data.result_image, `✓ Wearing: ${data.product.name}${debugType}`);
       } else {
         showError('resultArea', data.error);
       }
