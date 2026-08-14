@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accessories Try-On — TryON.ai</title>
+<link rel="stylesheet" href="../css/shared.css">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">Try<span>ON</span>.ai</a>
+  <div class="nav-links">
+    <a href="clothes.html"      class="nav-link">👗 Clothes</a>
+    <a href="makeup.html"       class="nav-link">💄 Makeup</a>
+    <a href="accessories.html"  class="nav-link active">👓 Accessories</a>
+    <a href="size.html"         class="nav-link">📏 Size Finder</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">Home</a> › Module 03</div>
+  <div class="page-title">👓 Virtual Accessories Try-On</div>
+  <div class="page-subtitle">Try on glasses, hats, earrings, necklaces using AI landmark detection</div>
+</div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section-label">Step 1 — Your Photo</div>
+    <div class="upload-area">
+      <input type="file" id="photoInput" accept="image/*" onchange="onPhotoSelected(event)">
+      <div class="upload-icon">📷</div>
+      <div class="upload-text">Click to upload your photo</div>
+      <div class="upload-hint">Face photo for glasses/hats • Full body for necklaces</div>
+      <img id="photoPreview" class="preview-img" alt="Your photo">
+    </div>
+
+    <div class="section-label">Step 2 — Filter by Type</div>
+    <div id="filterTabs" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="tab-btn active" onclick="filterByType('all', this)">All</button>
+      <button class="tab-btn" onclick="filterByType('glasses', this)">👓 Glasses</button>
+      <button class="tab-btn" onclick="filterByType('hat', this)">🎩 Hats</button>
+      <button class="tab-btn" onclick="filterByType('earrings', this)">💎 Earrings</button>
+      <button class="tab-btn" onclick="filterByType('necklace', this)">📿 Necklace</button>
+    </div>
+    <div class="products-grid" id="productsGrid">Loading...</div>
+
+    <button class="cta-btn" id="tryOnBtn" onclick="runTryOn()" disabled>
+      👓 Try Accessory On
+    </button>
+
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-area">
+    <div id="resultArea" class="result-placeholder">
+      <div class="result-placeholder-icon">👓</div>
+      <h3>Your accessory look will appear here</h3>
+      <p>Upload your photo and choose an accessory</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn {
+  padding: 7px 14px; border-radius: 100px; border: 1.5px solid var(--border);
+  background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; color: var(--muted); transition: all 0.2s;
+}
+.tab-btn.active, .tab-btn:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+</style>
+
+<script src="../js/api.js"></script>
+<script>
+  let selectedProductId = null;
+  let selectedFile = null;
+  let allProducts = [];
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await seedDemoData();
+    await loadProducts();
+  });
+
+  async function loadProducts() {
+    try {
+      const data = await apiGet('/accessories/products');
+      allProducts = data.products || [];
+      renderProducts(allProducts);
+    } catch (err) {
+      document.getElementById('productsGrid').innerHTML =
+        `<div style="color:red; font-size:13px; grid-column:span 2;">⚠️ Backend not running.</div>`;
+    }
+  }
+
+  function filterByType(type, btnEl) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    const filtered = type === 'all' ? allProducts : allProducts.filter(p => p.sub_category === type);
+    renderProducts(filtered);
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!products.length) {
+      grid.innerHTML = `<div style="grid-column:span 2; color:var(--muted); font-size:13px;">No products found.</div>`;
+      return;
+    }
+    grid.innerHTML = products.map(p => `
+      <div class="product-card" id="prod-${p.id}" onclick="selectProduct(${p.id})">
+        <img class="product-img" src="${p.image_url}" alt="${p.name}"
+             onerror="this.src='https://via.placeholder.com/150?text=${p.sub_category}'">
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">PKR ${p.price?.toLocaleString()}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectProduct(id) {
+    document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`prod-${id}`)?.classList.add('selected');
+    selectedProductId = id;
+    updateBtn();
+  }
+
+  function onPhotoSelected(event) {
+    selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const p = document.getElementById('photoPreview');
+        p.src = e.target.result; p.style.display = 'block';
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+    updateBtn();
+  }
+
+  function updateBtn() {
+    document.getElementById('tryOnBtn').disabled = !(selectedFile && selectedProductId);
+  }
+
+  async function runTryOn() {
+    if (!selectedFile || !selectedProductId) return;
+    showLoading('resultArea', 'Detecting landmarks and placing accessory...');
+    document.getElementById('tryOnBtn').disabled = true;
+
+    try {
+      const data = await apiUploadImage('/accessories/tryon', selectedFile, {
+        product_id: selectedProductId
+      });
+      if (data.success) {
+        showResultImage('resultArea', data.result_image, `✓ Wearing: ${data.product.name}`);
+      } else {
+        showError('resultArea', data.error);
+      }
+    } catch (err) {
+      showError('resultArea', err.message);
+    } finally {
+      document.getElementById('tryOnBtn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

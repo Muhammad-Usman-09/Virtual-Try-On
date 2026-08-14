@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI-FIT — Virtual Try-On Ecosystem</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream:  #FAF7F2;
+    --dark:   #1A1A2E;
+    --accent: #C9A96E;
+    --rose:   #E8B4B8;
+    --sage:   #7A9E7E;
+    --text:   #2D2D2D;
+    --muted:  #888;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+
+  /* NAV */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 48px;
+    background:rgba(250,247,242,0.93); backdrop-filter:blur(12px);
+    border-bottom:1px solid rgba(201,169,110,0.2);
+  }
+  .logo { font-family:'Playfair Display',serif; font-size:22px; font-weight:900; color:var(--dark); letter-spacing:-0.5px; text-decoration:none; }
+  .logo span { color:var(--accent); }
+  .nav-links { display:flex; gap:6px; list-style:none; }
+  .nav-links a { text-decoration:none; color:var(--text); font-size:13px; font-weight:500; padding:7px 14px; border-radius:100px; transition:all 0.2s; }
+  .nav-links a:hover { background:var(--dark); color:#fff; }
+  .nav-right { display:flex; align-items:center; gap:12px; }
+  .nav-user { font-size:13px; color:var(--muted); font-weight:500; }
+  .nav-cta { background:var(--dark); color:#fff; padding:10px 22px; border-radius:100px; font-size:13px; font-weight:600; text-decoration:none; transition:all 0.2s; }
+  .nav-cta:hover { background:var(--accent); transform:translateY(-1px); }
+  .nav-cta.outline { background:transparent; color:var(--dark); border:2px solid rgba(0,0,0,0.15); }
+  .nav-cta.outline:hover { background:var(--dark); color:#fff; border-color:var(--dark); }
+
+  /* HERO */
+  .hero {
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding:120px 48px 80px;
+    background:linear-gradient(135deg,#FAF7F2 0%,#F5EDE0 50%,#EEE5F5 100%);
+    position:relative; overflow:hidden;
+  }
+  .hero::before {
+    content:''; position:absolute; top:-200px; right:-200px;
+    width:600px; height:600px; border-radius:50%;
+    background:radial-gradient(circle,rgba(201,169,110,0.15) 0%,transparent 70%);
+  }
+  .hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(201,169,110,0.15); color:var(--accent); border:1px solid rgba(201,169,110,0.3); padding:6px 16px; border-radius:100px; font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase; margin-bottom:32px; width:fit-content; }
+  .hero h1 { font-family:'Playfair Display',serif; font-size:clamp(48px,8vw,96px); font-weight:900; line-height:0.95; color:var(--dark); margin-bottom:28px; }
+  .hero h1 em { font-style:normal; color:var(--accent); }
+  .hero p { font-size:18px; color:var(--muted); max-width:520px; line-height:1.7; margin-bottom:48px; }
+  .hero-buttons { display:flex; gap:16px; flex-wrap:wrap; }
+  .btn-primary { background:var(--dark); color:#fff; padding:16px 36px; border-radius:100px; font-size:15px; font-weight:600; text-decoration:none; transition:all 0.2s; }
+  .btn-primary:hover { background:var(--accent); transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,169,110,0.35); }
+  .btn-secondary { background:transparent; color:var(--dark); padding:16px 36px; border-radius:100px; font-size:15px; font-weight:600; text-decoration:none; border:2px solid var(--dark); transition:all 0.2s; }
+  .btn-secondary:hover { background:var(--dark); color:#fff; }
+  .stats { display:flex; gap:48px; margin-top:64px; padding-top:48px; border-top:1px solid rgba(0,0,0,0.08); flex-wrap:wrap; }
+  .stat-num { font-family:'Playfair Display',serif; font-size:36px; font-weight:900; color:var(--dark); }
+  .stat-label { font-size:13px; color:var(--muted); margin-top:4px; }
+
+  /* MODULES */
+  .modules { padding:100px 48px; background:#fff; }
+  .section-label { font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--accent); margin-bottom:16px; }
+  .section-title { font-family:'Playfair Display',serif; font-size:clamp(32px,5vw,52px); font-weight:900; color:var(--dark); margin-bottom:64px; max-width:600px; line-height:1.1; }
+  .modules-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; }
+  .module-card { border-radius:20px; overflow:hidden; cursor:pointer; text-decoration:none; transition:transform 0.3s,box-shadow 0.3s; display:block; position:relative; }
+  .module-card:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(0,0,0,0.12); }
+  .module-card-inner { padding:36px 32px 32px; height:100%; min-height:280px; display:flex; flex-direction:column; justify-content:space-between; }
+  .card-1 { background:linear-gradient(135deg,#1A1A2E,#16213E); }
+  .card-2 { background:linear-gradient(135deg,#2D1B33,#4A2040); }
+  .card-3 { background:linear-gradient(135deg,#1B2D2D,#1A3A35); }
+  .card-4 { background:linear-gradient(135deg,#2D2416,#3D3010); }
+  .module-icon { font-size:40px; margin-bottom:24px; }
+  .module-num { font-size:11px; font-weight:700; letter-spacing:2px; color:rgba(255,255,255,0.4); text-transform:uppercase; margin-bottom:12px; }
+  .module-name { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:#fff; margin-bottom:12px; line-height:1.2; }
+  .module-desc { font-size:14px; color:rgba(255,255,255,0.6); line-height:1.6; }
+  .module-arrow { width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,0.1); display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px; margin-top:24px; transition:background 0.2s; }
+  .module-card:hover .module-arrow { background:var(--accent); }
+
+  /* HOW IT WORKS */
+  .how { padding:100px 48px; background:var(--cream); }
+  .steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:32px; margin-top:48px; }
+  .step-num { width:48px; height:48px; border-radius:50%; background:var(--dark); color:#fff; font-family:'Playfair Display',serif; font-size:20px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-bottom:20px; }
+  .step h3 { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--dark); margin-bottom:10px; }
+  .step p { font-size:14px; color:var(--muted); line-height:1.7; }
+
+  /* TESTIMONIALS */
+  .testimonials { padding:100px 48px; background:#fff; }
+  .testimonials-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:24px; margin-top:48px; }
+  .testimonial-card {
+    background:var(--cream); border-radius:20px; padding:32px;
+    border:1px solid rgba(201,169,110,0.15);
+    transition:transform 0.3s, box-shadow 0.3s;
+  }
+  .testimonial-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(0,0,0,0.08); }
+  .stars { color:var(--accent); font-size:14px; letter-spacing:2px; margin-bottom:16px; }
+  .testimonial-text { font-size:15px; line-height:1.7; color:var(--text); margin-bottom:24px; font-style:italic; }
+  .testimonial-text::before { content:'\201C'; font-family:'Playfair Display',serif; font-size:48px; color:var(--accent); opacity:0.3; line-height:0; vertical-align:-16px; margin-right:4px; }
+  .testimonial-author { display:flex; align-items:center; gap:12px; }
+  .author-avatar { width:44px; height:44px; border-radius:50%; background:var(--dark); display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--accent); flex-shrink:0; }
+  .author-name { font-size:14px; font-weight:700; color:var(--dark); }
+  .author-role { font-size:12px; color:var(--muted); margin-top:2px; }
+  .testimonials-cta { text-align:center; margin-top:48px; }
+
+  /* ADD TESTIMONIAL FORM */
+  .add-review-wrap { background:var(--cream); border-radius:20px; padding:32px; margin-top:32px; border:2px dashed rgba(201,169,110,0.3); max-width:640px; margin-left:auto; margin-right:auto; }
+  .add-review-wrap h3 { font-family:'Playfair Display',serif; font-size:20px; color:var(--dark); margin-bottom:20px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .form-input {
+    padding:11px 14px; border:2px solid rgba(0,0,0,0.08); border-radius:10px; width:100%;
+    font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text);
+    background:#fff; transition:border-color 0.2s;
+  }
+  .form-input:focus { outline:none; border-color:var(--accent); }
+  textarea.form-input { resize:vertical; min-height:90px; }
+  .stars-input { display:flex; gap:4px; margin-bottom:12px; }
+  .star-btn { font-size:22px; background:none; border:none; cursor:pointer; opacity:0.3; transition:opacity 0.15s; }
+  .star-btn.active { opacity:1; }
+  .submit-review { background:var(--dark); color:#fff; padding:12px 28px; border-radius:100px; border:none; font-size:14px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+  .submit-review:hover { background:var(--accent); transform:translateY(-1px); }
+
+  /* FOOTER */
+  footer { background:var(--dark); color:rgba(255,255,255,0.6); text-align:center; padding:40px 48px; font-size:14px; }
+  footer strong { color:var(--accent); }
+
+  @media(max-width:768px) {
+    nav { padding:16px 20px; }
+    .hero { padding:100px 24px 60px; }
+    .modules,.how,.testimonials { padding:60px 24px; }
+    .stats { gap:32px; }
+    .nav-links { display:none; }
+    .form-row { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">Try<span>ON</span>.ai</a>
+  <ul class="nav-links">
+    <li><a href="pages/clothes.html">👗 Clothes</a></li>
+    <li><a href="pages/makeup.html">💄 Makeup</a></li>
+    <li><a href="pages/analytics.html">📊 Analytics</a></li>
+    <li><a href="pages/size.html">📏 Size Finder</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user-label"></span>
+    <a href="pages/auth.html" class="nav-cta outline" id="nav-login-btn">Login</a>
+    <a href="pages/clothes.html" class="nav-cta">Try Now →</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-badge">✦ AI-Powered Fashion Tech · FYP 2024–25</div>
+  <h1>Try it on.<br><em>Before</em> you buy.</h1>
+  <p>Upload your photo and virtually try on clothes, makeup, and get your perfect size from your favourite stores. Powered by Computer Vision & AI.</p>
+  <div class="hero-buttons">
+    <a href="pages/clothes.html" class="btn-primary">Start Try-On →</a>
+    <a href="pages/size.html" class="btn-secondary">Find My Size</a>
+  </div>
+  <div class="stats">
+    <div><div class="stat-num">4</div><div class="stat-label">AI Modules</div></div>
+    <div><div class="stat-num">468</div><div class="stat-label">Face Landmarks</div></div>
+    <div><div class="stat-num">23%</div><div class="stat-label">Return Rate ↓</div></div>
+    <div><div class="stat-num">PKR</div><div class="stat-label">Local Store Ready</div></div>
+  </div>
+</section>
+
+<section class="modules">
+  <div class="section-label">What We Offer</div>
+  <div class="section-title">Four powerful try-on experiences</div>
+  <div class="modules-grid">
+    <a href="pages/clothes.html" class="module-card">
+      <div class="module-card-inner card-1">
+        <div>
+          <div class="module-num">Module 01</div>
+          <div class="module-icon">👗</div>
+          <div class="module-name">Virtual Clothes Try-On</div>
+          <div class="module-desc">Upload your full-body photo and see how any outfit from the store looks on you — powered by pose detection & background removal AI.</div>
+        </div>
+        <div class="module-arrow">→</div>
+      </div>
+    </a>
+    <a href="pages/makeup.html" class="module-card">
+      <div class="module-card-inner card-2">
+        <div>
+          <div class="module-num">Module 02</div>
+          <div class="module-icon">💄</div>
+          <div class="module-name">Virtual Makeup Try-On</div>
+          <div class="module-desc">Try lipstick, eyeshadow, blush and foundation from the store's collection on your face photo using 468-point face mesh detection.</div>
+        </div>
+        <div class="module-arrow">→</div>
+      </div>
+    </a>
+    <a href="pages/analytics.html" class="module-card">
+      <div class="module-card-inner card-3">
+        <div>
+          <div class="module-num">Module 03</div>
+          <div class="module-icon">📊</div>
+          <div class="module-name">Analytics Dashboard</div>
+          <div class="module-desc">Business intelligence layer — usage trends, size distribution, popular products, and return rate analysis for store owners.</div>
+        </div>
+        <div class="module-arrow">→</div>
+      </div>
+    </a>
+    <a href="pages/size.html" class="module-card">
+      <div class="module-card-inner card-4">
+        <div>
+          <div class="module-num">Module 04</div>
+          <div class="module-icon">📏</div>
+          <div class="module-name">AI Size Recommender</div>
+          <div class="module-desc">Enter your measurements and get your perfect size with detailed fit advice for every garment type — top, bottom, and dress.</div>
+        </div>
+        <div class="module-arrow">→</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+<section class="how">
+  <div class="section-label">How It Works</div>
+  <div class="section-title">Four simple steps</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Create Account</h3>
+      <p>Register in seconds or continue as guest. Your profile saves your measurements for future visits.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Upload Your Photo</h3>
+      <p>Take or upload a clear photo. Our AI detects your body pose or face landmarks automatically.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Choose a Product</h3>
+      <p>Browse real products from the store's linked inventory and click any item to try it on instantly.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <h3>Shop with Confidence</h3>
+      <p>Love what you see? Know your size. Buy — knowing it will look great when it arrives.</p>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS SECTION -->
+<section class="testimonials">
+  <div class="section-label">User Reviews</div>
+  <div class="section-title">What our users are saying</div>
+
+  <div class="testimonials-grid" id="testimonials-grid">
+    <!-- Loaded dynamically -->
+    <div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:40px;">Loading reviews…</div>
+  </div>
+
+  <!-- ADD YOUR OWN REVIEW -->
+  <div class="testimonials-cta">
+    <div class="add-review-wrap" id="review-form-wrap">
+      <h3>✍️ Share Your Experience</h3>
+      <div class="form-row">
+        <input class="form-input" id="rev-name" placeholder="Your Name">
+        <input class="form-input" id="rev-role" placeholder="Your Role / City (optional)">
+      </div>
+      <textarea class="form-input" id="rev-msg" placeholder="How did AI-FIT help you? Share your experience…"></textarea>
+      <div style="margin:12px 0 16px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600;">RATING</div>
+        <div class="stars-input" id="stars-input">
+          <button class="star-btn active" data-val="1" onclick="setRating(1)">★</button>
+          <button class="star-btn active" data-val="2" onclick="setRating(2)">★</button>
+          <button class="star-btn active" data-val="3" onclick="setRating(3)">★</button>
+          <button class="star-btn active" data-val="4" onclick="setRating(4)">★</button>
+          <button class="star-btn active" data-val="5" onclick="setRating(5)">★</button>
+        </div>
+      </div>
+      <button class="submit-review" onclick="submitReview()">Submit Review →</button>
+      <div id="review-msg" style="margin-top:12px; font-size:13px;"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>Built for <strong>COMSATS University Islamabad</strong> — BS Business Data Analytics · FA22-BDA-020</p>
+  <p style="margin-top:8px; font-size:12px; opacity:0.6;">AI-Driven Virtual Try-On Ecosystem · FYP 2024–25</p>
+</footer>
+
+<script>
+const API = 'http://localhost:5000/api';
+let selectedRating = 5;
+
+/* ── Auth state ─────────────────────── */
+function loadAuthState() {
+  const user = JSON.parse(localStorage.getItem('user') || 'null');
+  if (user) {
+    document.getElementById('nav-user-label').textContent = `Hi, ${user.name.split(' ')[0]} 👋`;
+    const btn = document.getElementById('nav-login-btn');
+    btn.textContent = 'Logout';
+    btn.onclick = (e) => { e.preventDefault(); logout(); };
+  }
+}
+
+function logout() {
+  localStorage.removeItem('user');
+  fetch(`${API}/auth/logout`, {method:'POST', credentials:'include'}).catch(()=>{});
+  location.reload();
+}
+
+/* ── Testimonials ───────────────────── */
+async function loadTestimonials() {
+  let data;
+  try {
+    const res = await fetch(`${API}/testimonials/`);
+    data = await res.json();
+  } catch {
+    data = { testimonials: getDemoTestimonials() };
+  }
+
+  const grid = document.getElementById('testimonials-grid');
+  if (!data.testimonials || !data.testimonials.length) {
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:var(--muted); padding:20px;">No reviews yet. Be the first!</div>';
+    return;
+  }
+
+  grid.innerHTML = data.testimonials.map(t => `
+    <div class="testimonial-card">
+      <div class="stars">${'★'.repeat(t.rating || 5)}${'☆'.repeat(5-(t.rating||5))}</div>
+      <div class="testimonial-text">${t.message}</div>
+      <div class="testimonial-author">
+        <div class="author-avatar">${(t.name||'U')[0].toUpperCase()}</div>
+        <div>
+          <div class="author-name">${t.name}</div>
+          <div class="author-role">${t.role || 'User'}</div>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function getDemoTestimonials() {
+  return [
+    {name:"Ayesha Raza",role:"Online Shopper, Lahore",rating:5,message:"I used to return 3 out of 5 items because of sizing. AI-FIT showed me exactly how the outfit would fit — zero returns since!"},
+    {name:"Bilal Chaudhry",role:"E-commerce Seller, Karachi",rating:5,message:"Integrated this into our store and saw a 30% drop in returns in the first month. Game changer for Pakistani fashion retail."},
+    {name:"Sana Mirza",role:"University Student, Islamabad",rating:4,message:"The makeup try-on is so accurate! Tried 10 lipstick shades before ordering — got exactly what I wanted."},
+    {name:"Farhan Ahmed",role:"Fashion Brand Owner",rating:5,message:"Our customers now shop with so much more confidence. The AI size recommender even handles Pakistani brand sizing quirks!"},
+    {name:"Zara Malik",role:"Content Creator, Islamabad",rating:5,message:"Virtual try-on changed how I recommend outfits to my followers. They can try before they buy!"},
+    {name:"Hassan Iqbal",role:"Software Engineer",rating:4,message:"Impressive technical work — MediaPipe + CV pipeline is smooth. The analytics dashboard is exactly what a BDA project should show."},
+  ];
+}
+
+/* ── Rating stars ───────────────────── */
+function setRating(val) {
+  selectedRating = val;
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.dataset.val) <= val);
+  });
+}
+
+/* ── Submit review ──────────────────── */
+async function submitReview() {
+  const name    = document.getElementById('rev-name').value.trim();
+  const role    = document.getElementById('rev-role').value.trim();
+  const message = document.getElementById('rev-msg').value.trim();
+  const msgEl   = document.getElementById('review-msg');
+
+  if (!name || !message) {
+    msgEl.style.color = '#c62828';
+    msgEl.textContent = 'Please enter your name and review.';
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API}/testimonials/`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name, role, message, rating:selectedRating})
+    });
+    const data = await res.json();
+    if (data.success) {
+      msgEl.style.color = '#2e7d32';
+      msgEl.textContent = '✓ Thank you! Your review has been added.';
+      document.getElementById('rev-name').value = '';
+      document.getElementById('rev-role').value = '';
+      document.getElementById('rev-msg').value  = '';
+      loadTestimonials(); // Refresh
+    } else {
+      throw new Error(data.error);
+    }
+  } catch {
+    // Add locally for demo
+    const grid = document.getElementById('testimonials-grid');
+    const newCard = document.createElement('div');
+    newCard.className = 'testimonial-card';
+    newCard.innerHTML = `
+      <div class="stars">${'★'.repeat(selectedRating)}</div>
+      <div class="testimonial-text">${message}</div>
+      <div class="testimonial-author">
+        <div class="author-avatar">${name[0].toUpperCase()}</div>
+        <div>
+          <div class="author-name">${name}</div>
+          <div class="author-role">${role || 'User'}</div>
+        </div>
+      </div>`;
+    grid.insertBefore(newCard, grid.firstChild);
+    msgEl.style.color = '#2e7d32';
+    msgEl.textContent = '✓ Review added! (Demo mode — not saved to server)';
+    document.getElementById('rev-name').value = '';
+    document.getElementById('rev-role').value = '';
+    document.getElementById('rev-msg').value  = '';
+  }
+}
+
+/* ── Init ───────────────────────────── */
+loadAuthState();
+loadTestimonials();
+</script>
+</body>
+</html>

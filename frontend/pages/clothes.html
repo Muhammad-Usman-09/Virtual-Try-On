@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Clothes Try-On — TryON.ai</title>
+<link rel="stylesheet" href="../css/shared.css">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">Try<span>ON</span>.ai</a>
+  <div class="nav-links">
+    <a href="clothes.html"      class="nav-link active">👗 Clothes</a>
+    <a href="makeup.html"       class="nav-link">💄 Makeup</a>
+    <a href="accessories.html"  class="nav-link">👓 Accessories</a>
+    <a href="size.html"         class="nav-link">📏 Size Finder</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">Home</a> › Module 01</div>
+  <div class="page-title">👗 Virtual Clothes Try-On</div>
+  <div class="page-subtitle">Upload your photo and see any outfit from the store on yourself</div>
+</div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section-label">Step 1 — Your Photo</div>
+    <div class="upload-area" id="uploadArea">
+      <input type="file" id="photoInput" accept="image/*" onchange="onPhotoSelected(event)">
+      <div class="upload-icon">📸</div>
+      <div class="upload-text">Click to upload your photo</div>
+      <div class="upload-hint">Full body photo works best • JPG or PNG</div>
+      <img id="photoPreview" class="preview-img" alt="Your photo">
+    </div>
+
+    <div class="section-label">Step 2 — Choose Outfit</div>
+    <div class="products-grid" id="productsGrid">
+      <div style="grid-column:span 2; text-align:center; padding:20px; color:var(--muted); font-size:13px;">
+        Loading products...
+      </div>
+    </div>
+
+    <button class="cta-btn" id="tryOnBtn" onclick="runTryOn()" disabled>
+      ✨ Try It On
+    </button>
+
+  </div>
+
+  <!-- RESULT AREA -->
+  <div class="result-area">
+    <div class="result-placeholder" id="resultArea">
+      <div class="result-placeholder-icon">👗</div>
+      <h3>Your try-on will appear here</h3>
+      <p>Upload a photo and select an outfit to get started</p>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+  let selectedProductId = null;
+  let selectedFile = null;
+
+  // Load products on page load
+  window.addEventListener('DOMContentLoaded', async () => {
+    await seedDemoData();
+    loadProducts();
+  });
+
+  async function loadProducts() {
+    try {
+      const data = await apiGet('/clothes/products');
+      renderProducts(data.products);
+    } catch (err) {
+      document.getElementById('productsGrid').innerHTML =
+        `<div style="grid-column:span 2; color:red; font-size:13px;">⚠️ Could not load products. Is the backend running?</div>`;
+    }
+  }
+
+  function renderProducts(products) {
+    const grid = document.getElementById('productsGrid');
+    if (!products.length) {
+      grid.innerHTML = '<div style="grid-column:span 2; color:var(--muted);">No clothing products found. Seed demo data first.</div>';
+      return;
+    }
+    grid.innerHTML = products.map(p => `
+      <div class="product-card" id="prod-${p.id}" onclick="selectProduct(${p.id})">
+        <img class="product-img" src="${p.image_url}" alt="${p.name}"
+             onerror="this.src='https://via.placeholder.com/150?text=No+Image'">
+        <div class="product-name">${p.name}</div>
+        <div class="product-price">PKR ${p.price?.toLocaleString()}</div>
+      </div>
+    `).join('');
+  }
+
+  function selectProduct(id) {
+    document.querySelectorAll('.product-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`prod-${id}`)?.classList.add('selected');
+    selectedProductId = id;
+    updateBtn();
+  }
+
+  function onPhotoSelected(event) {
+    selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const preview = document.getElementById('photoPreview');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+    updateBtn();
+  }
+
+  function updateBtn() {
+    document.getElementById('tryOnBtn').disabled = !(selectedFile && selectedProductId);
+  }
+
+  async function runTryOn() {
+    if (!selectedFile || !selectedProductId) return;
+
+    showLoading('resultArea', '🤖 AI is fitting the outfit — this takes 20–40 seconds...');
+    document.getElementById('tryOnBtn').disabled = true;
+
+    // After 10 sec, update message so user knows it's still working
+    const hint = setTimeout(() => {
+      const area = document.getElementById('resultArea');
+      const msg  = area.querySelector('p');
+      if (msg) msg.textContent = '⏳ GAN model is processing your photo... almost there!';
+    }, 10000);
+
+    try {
+      const data = await apiUploadImage('/clothes/tryon', selectedFile, {
+        product_id: selectedProductId
+      });
+
+      clearTimeout(hint);
+
+      if (data.success) {
+        showResultImage('resultArea', data.result_image, `✓ Wearing: ${data.product.name}`);
+      } else {
+        showError('resultArea', data.error);
+      }
+    } catch (err) {
+      clearTimeout(hint);
+      showError('resultArea', err.message);
+    } finally {
+      document.getElementById('tryOnBtn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

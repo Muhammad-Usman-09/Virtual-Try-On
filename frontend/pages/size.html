@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Size Recommender — AI-FIT</title>
+<link rel="stylesheet" href="../css/shared.css">
+<style>
+  .bmi-badge { display:inline-flex; align-items:center; gap:6px; padding:5px 14px; border-radius:100px; font-size:12px; font-weight:700; margin-bottom:16px; }
+  .bmi-normal { background:#E8F5E9; color:#2E7D32; }
+  .bmi-under  { background:#E3F2FD; color:#1565C0; }
+  .bmi-over   { background:#FFF3E0; color:#E65100; }
+  .size-hero {
+    text-align:center; padding:40px 32px 36px;
+    background:linear-gradient(135deg,#1A1A2E,#2D2416);
+    border-radius:20px; margin-bottom:24px; color:#fff;
+  }
+  .size-hero-label { font-size:11px; letter-spacing:2px; text-transform:uppercase; color:rgba(255,255,255,0.4); margin-bottom:12px; }
+  .size-hero-main  { font-family:'Playfair Display',serif; font-size:80px; font-weight:900; color:#C9A96E; line-height:1; }
+  .size-hero-sub   { font-size:13px; color:rgba(255,255,255,0.5); margin-top:10px; }
+  .conf-bar-wrap   { background:rgba(0,0,0,0.08); border-radius:100px; height:8px; margin:16px 0 4px; overflow:hidden; }
+  .conf-bar-fill   { height:100%; border-radius:100px; background:linear-gradient(90deg,#C9A96E,#E8C98A); transition:width 0.8s ease; }
+  .conf-label      { font-size:12px; color:rgba(255,255,255,0.5); text-align:right; }
+  .breakdown-table { width:100%; border-collapse:collapse; margin-top:16px; }
+  .breakdown-table th { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,0.4); font-weight:600; padding:8px 0; text-align:left; border-bottom:1px solid rgba(255,255,255,0.08); }
+  .breakdown-table td { padding:12px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:14px; color:rgba(255,255,255,0.8); }
+  .breakdown-table td:last-child { text-align:right; font-weight:700; color:#C9A96E; font-size:16px; }
+  .fit-notes-box { background:rgba(255,255,255,0.06); border-radius:12px; padding:16px; margin-top:16px; font-size:13px; color:rgba(255,255,255,0.7); line-height:1.7; }
+  .method-pill { display:inline-flex; align-items:center; gap:6px; background:rgba(122,158,126,0.2); color:#7A9E7E; border-radius:100px; padding:4px 12px; font-size:11px; font-weight:700; margin-top:16px; }
+  .measure-tips { background:var(--cream); border-radius:12px; padding:16px; margin-top:16px; }
+  .measure-tips h4 { font-size:12px; font-weight:700; color:var(--dark); margin-bottom:10px; letter-spacing:0.5px; text-transform:uppercase; }
+  .measure-tip { font-size:12px; color:var(--muted); line-height:2; }
+  .gender-toggle { display:flex; gap:0; margin-bottom:16px; border:2px solid rgba(0,0,0,0.08); border-radius:10px; overflow:hidden; }
+  .gender-btn { flex:1; padding:10px; text-align:center; font-size:13px; font-weight:600; cursor:pointer; background:#fff; color:var(--muted); border:none; transition:all 0.2s; font-family:'DM Sans',sans-serif; }
+  .gender-btn.active { background:var(--dark); color:#fff; }
+  .result-area-size { background:#1A1A2E; border-radius:20px; padding:28px; color:#fff; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">Try<span>ON</span>.ai</a>
+  <div class="nav-links">
+    <a href="clothes.html"   class="nav-link">👗 Clothes</a>
+    <a href="makeup.html"    class="nav-link">💄 Makeup</a>
+    <a href="analytics.html" class="nav-link">📊 Analytics</a>
+    <a href="size.html"      class="nav-link active">📏 Size Finder</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">Home</a> › Module 04</div>
+  <div class="page-title">📏 AI Size & Fit Recommender</div>
+  <div class="page-subtitle">Enter your measurements — get your perfect size with fit analysis & garment breakdown</div>
+</div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section-label">Gender</div>
+    <div class="gender-toggle">
+      <button class="gender-btn active" id="btn-women" onclick="setGender('women')">👩 Women</button>
+      <button class="gender-btn" id="btn-men" onclick="setGender('men')">👨 Men</button>
+    </div>
+
+    <div class="section-label">Your Measurements</div>
+
+    <div class="field-group">
+      <label>Height (cm) *</label>
+      <input type="number" id="height" placeholder="e.g. 165" min="100" max="220">
+    </div>
+    <div class="field-group">
+      <label>Weight (kg) *</label>
+      <input type="number" id="weight" placeholder="e.g. 60" min="30" max="200">
+    </div>
+    <div class="field-group">
+      <label>Chest / Bust (cm) *</label>
+      <input type="number" id="chest" placeholder="e.g. 88" min="60" max="150">
+    </div>
+    <div class="field-group">
+      <label>Waist (cm) *</label>
+      <input type="number" id="waist" placeholder="e.g. 72" min="50" max="130">
+    </div>
+    <div class="field-group">
+      <label>Hips (cm) *</label>
+      <input type="number" id="hips" placeholder="e.g. 96" min="60" max="150">
+    </div>
+    <div class="field-group">
+      <label>Shoulder Width (cm)</label>
+      <input type="number" id="shoulder" placeholder="e.g. 40" min="30" max="70">
+    </div>
+    <div class="field-group">
+      <label>Inseam (cm) <span style="color:var(--muted); font-weight:400;">for pants</span></label>
+      <input type="number" id="inseam" placeholder="e.g. 78" min="40" max="120">
+    </div>
+
+    <button class="cta-btn" onclick="getRecommendation()">
+      📏 Find My Perfect Size
+    </button>
+
+    <div class="measure-tips">
+      <h4>📐 Measurement Guide</h4>
+      <div class="measure-tip">
+        <b>Chest:</b> Around fullest part of chest/bust<br>
+        <b>Waist:</b> Narrowest part of torso<br>
+        <b>Hips:</b> Around fullest part of hips<br>
+        <b>Shoulder:</b> Left to right shoulder point<br>
+        <b>Inseam:</b> Crotch to ankle (pants only)
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-area" id="resultOuter">
+    <div id="resultArea" class="result-placeholder">
+      <div class="result-placeholder-icon">📏</div>
+      <h3>Your size recommendation</h3>
+      <p>Fill in your measurements on the left and click Find My Perfect Size</p>
+    </div>
+  </div>
+</div>
+
+<script src="../js/api.js"></script>
+<script>
+let selectedGender = 'women';
+
+function setGender(g) {
+  selectedGender = g;
+  document.getElementById('btn-women').classList.toggle('active', g==='women');
+  document.getElementById('btn-men').classList.toggle('active', g==='men');
+}
+
+async function getRecommendation() {
+  const height   = parseFloat(document.getElementById('height').value);
+  const weight   = parseFloat(document.getElementById('weight').value);
+  const chest    = parseFloat(document.getElementById('chest').value);
+  const waist    = parseFloat(document.getElementById('waist').value);
+  const hips     = parseFloat(document.getElementById('hips').value);
+  const shoulder = parseFloat(document.getElementById('shoulder').value) || 0;
+  const inseam   = parseFloat(document.getElementById('inseam').value) || 0;
+
+  if (!height || !weight || !chest || !waist || !hips) {
+    showError('resultArea', 'Please fill in Height, Weight, Chest, Waist and Hips (required fields).');
+    return;
+  }
+
+  showLoading('resultArea', 'Calculating your perfect size...');
+
+  try {
+    const data = await apiPost('/size/recommend', {
+      height_cm:height, weight_kg:weight, chest_cm:chest,
+      waist_cm:waist, hips_cm:hips, shoulder_cm:shoulder,
+      inseam_cm:inseam, gender:selectedGender
+    });
+
+    if (data.success) renderSizeResult(data, height, weight);
+    else showError('resultArea', data.error);
+  } catch {
+    // Offline demo fallback
+    const demo = localPredict(chest, waist, hips, selectedGender);
+    renderSizeResult(demo, height, weight);
+  }
+}
+
+function localPredict(chest, waist, hips, gender) {
+  const chart = {
+    women: { XS:[71,81], S:[81,86], M:[86,92], L:[92,98], XL:[98,106], XXL:[106,116] },
+    men:   { XS:[79,86], S:[86,92], M:[92,99], L:[99,107], XL:[107,115], XXL:[115,124] }
+  }[gender];
+  let best='M', bestConf=0;
+  for(const [size,[lo,hi]] of Object.entries(chart)){
+    const c=chest>=lo&&chest<=hi?1:Math.max(0,1-Math.min(Math.abs(chest-lo),Math.abs(chest-hi))/10);
+    if(c>bestConf){bestConf=c;best=size;}
+  }
+  const order=['XS','S','M','L','XL','XXL'],idx=order.indexOf(best);
+  return {
+    success:true, recommended_size:best, confidence:bestConf,
+    size_breakdown:{ top:best, bottom:order[Math.min(idx+(hips>chest+8?1:0),5)], dress:order[Math.max(idx-(waist<chest-10?1:0),0)] },
+    fit_notes:`Size ${best} should fit you well. Measurements suggest a ${hips>chest+8?'pear':'balanced'} body shape.`,
+    method:'rule_based'
+  };
+}
+
+function renderSizeResult(data, height, weight) {
+  const el   = document.getElementById('resultArea');
+  const conf = Math.round((data.confidence||0.85)*100);
+  const bd   = data.size_breakdown;
+  const bmi  = height&&weight ? (weight/((height/100)**2)).toFixed(1) : null;
+  const bmiClass = bmi<18.5?'bmi-under':bmi>25?'bmi-over':'bmi-normal';
+  const bmiLabel = bmi<18.5?'Underweight':bmi>25?'Overweight':'Healthy Weight';
+  const method = data.method==='ml_model'?'🤖 ML Model':'📐 Rule-Based Chart';
+
+  el.className = '';
+  el.innerHTML = `
+    <div class="result-area-size">
+      <div class="size-hero">
+        <div class="size-hero-label">Recommended Size</div>
+        <div class="size-hero-main">${data.recommended_size}</div>
+        <div class="size-hero-sub">for most garments</div>
+        <div class="conf-bar-wrap"><div class="conf-bar-fill" style="width:${conf}%"></div></div>
+        <div class="conf-label">Confidence: ${conf}%</div>
+      </div>
+
+      ${bmi?`<div style="margin-bottom:16px;"><span class="bmi-badge ${bmiClass}">BMI ${bmi} — ${bmiLabel}</span></div>`:''}
+
+      <table class="breakdown-table">
+        <tr><th>Garment Type</th><th>Size</th></tr>
+        <tr><td>👕 Tops & Shirts</td><td>${bd.top}</td></tr>
+        <tr><td>👖 Bottoms & Pants</td><td>${bd.bottom}</td></tr>
+        <tr><td>👗 Dresses & Suits</td><td>${bd.dress}</td></tr>
+      </table>
+
+      <div class="fit-notes-box">💡 ${data.fit_notes}</div>
+      <div><span class="method-pill">⚙ ${method}</span></div>
+
+      <div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
+        <a href="clothes.html" style="flex:1; text-align:center; background:rgba(201,169,110,0.15); color:#C9A96E; padding:12px; border-radius:10px; text-decoration:none; font-size:13px; font-weight:600; border:1px solid rgba(201,169,110,0.3);">
+          👗 Try Clothes in ${data.recommended_size}
+        </a>
+        <button onclick="window.print()" style="flex:1; background:rgba(255,255,255,0.06); color:rgba(255,255,255,0.6); padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.1); font-size:13px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif;">
+          🖨 Print / Save
+        </button>
+      </div>
+    </div>
+  `;
+}
+</script>
+</body>
+</html>

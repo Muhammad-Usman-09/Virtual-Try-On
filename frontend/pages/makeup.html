@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Makeup Try-On — TryON.ai</title>
+<link rel="stylesheet" href="../css/shared.css">
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">Try<span>ON</span>.ai</a>
+  <div class="nav-links">
+    <a href="clothes.html"      class="nav-link">👗 Clothes</a>
+    <a href="makeup.html"       class="nav-link active">💄 Makeup</a>
+    <a href="analytics.html"  class="nav-link">📊 Analytics</a>
+    <a href="size.html"         class="nav-link">📏 Size Finder</a>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="breadcrumb"><a href="../index.html">Home</a> › Module 02</div>
+  <div class="page-title">💄 Virtual Makeup Try-On</div>
+  <div class="page-subtitle">Try lipstick, eyeshadow, blush and foundation from the store on your face photo</div>
+</div>
+
+<div class="main-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div class="section-label">Step 1 — Your Face Photo</div>
+    <div class="upload-area">
+      <input type="file" id="photoInput" accept="image/*" onchange="onPhotoSelected(event)">
+      <div class="upload-icon">🤳</div>
+      <div class="upload-text">Click to upload your face photo</div>
+      <div class="upload-hint">Clear, well-lit frontal photo works best</div>
+      <img id="photoPreview" class="preview-img" alt="Your photo">
+    </div>
+
+    <div class="section-label">Step 2 — Choose Makeup</div>
+    <div id="makeupTabs" style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">
+      <button class="tab-btn active" onclick="switchTab('lipstick', this)">💋 Lips</button>
+      <button class="tab-btn" onclick="switchTab('eyeshadow', this)">👁️ Eyes</button>
+      <button class="tab-btn" onclick="switchTab('blush', this)">🌸 Blush</button>
+      <button class="tab-btn" onclick="switchTab('foundation', this)">✨ Foundation</button>
+    </div>
+    <div id="productsContainer">Loading...</div>
+
+    <div class="section-label">Step 3 — Intensity</div>
+    <div class="slider-group">
+      <label>Makeup Intensity <span id="intensityVal">60%</span></label>
+      <input type="range" id="intensitySlider" min="10" max="100" value="60"
+             oninput="document.getElementById('intensityVal').textContent = this.value + '%'">
+    </div>
+
+    <button class="cta-btn" id="applyBtn" onclick="applyMakeup()" disabled>
+      💄 Apply Makeup
+    </button>
+
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-area">
+    <div id="resultArea" class="result-placeholder">
+      <div class="result-placeholder-icon">💄</div>
+      <h3>Your makeup look will appear here</h3>
+      <p>Upload your face photo and choose a product</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.tab-btn {
+  padding: 7px 14px; border-radius: 100px; border: 1.5px solid var(--border);
+  background: transparent; cursor: pointer; font-size: 12px; font-weight: 600;
+  font-family: 'DM Sans', sans-serif; color: var(--muted); transition: all 0.2s;
+}
+.tab-btn.active, .tab-btn:hover {
+  background: var(--dark); color: #fff; border-color: var(--dark);
+}
+.swatches-list { display: flex; flex-direction: column; gap: 8px; }
+</style>
+
+<script src="../js/api.js"></script>
+<script>
+  let selectedProductId = null;
+  let selectedFile = null;
+  let currentTab = 'lipstick';
+  let allProducts = {};
+
+  window.addEventListener('DOMContentLoaded', async () => {
+    await seedDemoData();
+    await loadProducts();
+  });
+
+  async function loadProducts() {
+    try {
+      const data = await apiGet('/makeup/products');
+      allProducts = data.products || {};
+      renderTab(currentTab);
+    } catch (err) {
+      document.getElementById('productsContainer').innerHTML =
+        `<div style="color:red; font-size:13px;">⚠️ Backend not running. Start Flask server first.</div>`;
+    }
+  }
+
+  function switchTab(tab, btnEl) {
+    currentTab = tab;
+    selectedProductId = null;
+    updateBtn();
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    renderTab(tab);
+  }
+
+  function renderTab(tab) {
+    const products = allProducts[tab] || [];
+    const container = document.getElementById('productsContainer');
+    if (!products.length) {
+      container.innerHTML = `<div style="color:var(--muted); font-size:13px; padding:12px 0;">No ${tab} products found.</div>`;
+      return;
+    }
+    container.innerHTML = `<div class="swatches-list">${
+      products.map(p => `
+        <div class="swatch-card" id="prod-${p.id}" onclick="selectProduct(${p.id})">
+          <div class="color-dot" style="background:${p.color_hex || '#ddd'}"></div>
+          <div>
+            <div class="swatch-name">${p.name}</div>
+            <div class="swatch-price">PKR ${p.price?.toLocaleString()}</div>
+          </div>
+        </div>
+      `).join('')
+    }</div>`;
+  }
+
+  function selectProduct(id) {
+    document.querySelectorAll('.swatch-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`prod-${id}`)?.classList.add('selected');
+    selectedProductId = id;
+    updateBtn();
+  }
+
+  function onPhotoSelected(event) {
+    selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const p = document.getElementById('photoPreview');
+        p.src = e.target.result; p.style.display = 'block';
+      };
+      reader.readAsDataURL(selectedFile);
+    }
+    updateBtn();
+  }
+
+  function updateBtn() {
+    document.getElementById('applyBtn').disabled = !(selectedFile && selectedProductId);
+  }
+
+  async function applyMakeup() {
+    if (!selectedFile || !selectedProductId) return;
+    const intensity = document.getElementById('intensitySlider').value / 100;
+
+    showLoading('resultArea', 'Applying makeup with AI face detection...');
+    document.getElementById('applyBtn').disabled = true;
+
+    try {
+      const data = await apiUploadImage('/makeup/apply', selectedFile, {
+        product_id: selectedProductId,
+        intensity:  intensity
+      });
+
+      if (data.success) {
+        showResultImage('resultArea', data.result_image,
+          `✓ Applied: ${data.product.name}`);
+      } else {
+        showError('resultArea', data.error);
+      }
+    } catch (err) {
+      showError('resultArea', err.message);
+    } finally {
+      document.getElementById('applyBtn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

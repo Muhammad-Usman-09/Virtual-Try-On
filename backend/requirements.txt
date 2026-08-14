@@ -1,0 +1,50 @@
+# ============================================================
+# AI-FIT Try-On Ecosystem — Python Requirements
+# Install: pip install -r requirements.txt
+# ============================================================
+
+# Web Framework
+flask==3.0.3
+flask-cors==4.0.1
+flask-sqlalchemy==3.1.1
+
+# Auth (password hashing — included in Flask/Werkzeug)
+werkzeug>=3.0.3
+
+# Environment variables
+python-dotenv==1.0.1
+
+# Database
+sqlalchemy==2.0.30
+
+# Computer Vision — CORE
+opencv-python==4.9.0.80
+mediapipe==0.10.14
+Pillow==10.3.0
+numpy==1.26.4
+
+# HTTP requests
+requests==2.32.3
+
+# Machine Learning
+scikit-learn==1.4.2
+pandas==2.2.2
+
+<<<<<<< HEAD
+# ── Enhanced Clothes Try-On (LOCAL — no GPU/API needed) ──────
+# Background removal via u2net ONNX model (~180MB download once)
+rembg==2.0.50
+onnxruntime==1.17.1
+
+# ── Optional: Full GAN (requires GPU 8GB+ VRAM) ─────────────
+# Only install if you have a capable GPU for final demo
+# torch==2.2.0+cu121
+# torchvision==0.17.0+cu121
+=======
+# Optional: Deep learning (large download ~2GB, skip for demo)
+# tensorflow==2.15.0
+# torch==2.2.0
+# torchvision==0.17.0
+# Hugging Face Gradio Client — for IDM-VTON Space (FREE, no API key needed)
+gradio_client==1.3.0
+>>>>>>> d0d6ec413bdd033855e50835344c3c129c0785dc

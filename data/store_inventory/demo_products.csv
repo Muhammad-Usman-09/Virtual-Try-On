@@ -1,0 +1,12 @@
+name,category,sub_category,price,image_url,color_hex,sizes
+Classic White Shirt,clothes,shirt,1500,https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400,,S,M,L,XL
+Black Slim Trousers,clothes,pants,2200,https://images.unsplash.com/photo-1542272604-787c3835535d?w=400,,S,M,L,XL,XXL
+Floral Summer Dress,clothes,dress,3500,https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=400,,XS,S,M,L
+Denim Jacket,clothes,jacket,4500,https://images.unsplash.com/photo-1551537482-f2075a1d41f2?w=400,,S,M,L,XL
+Red Matte Lipstick,makeup,lipstick,650,https://images.unsplash.com/photo-1586495777744-4e6232bf5a4f?w=400,#C0392B,
+Rose Gold Eyeshadow,makeup,eyeshadow,1200,https://images.unsplash.com/photo-1512496015851-a90fb38ba796?w=400,#B76E79,
+Peach Blush,makeup,blush,900,https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400,#FFAD8E,
+Classic Aviator Sunglasses,accessories,glasses,1200,https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400,,
+Gold Hoop Earrings,accessories,earrings,750,https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400,,
+Pearl Necklace,accessories,necklace,1100,https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400,,
+Beige Bucket Hat,accessories,hat,850,https://images.unsplash.com/photo-1521369909029-2afed882baee?w=400,,

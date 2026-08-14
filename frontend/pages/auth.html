@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login / Register — AI-FIT</title>
+<link rel="stylesheet" href="../css/shared.css">
+<style>
+  body { min-height:100vh; display:flex; flex-direction:column; }
+  .auth-wrap {
+    flex:1; display:flex; align-items:center; justify-content:center;
+    padding:40px 16px;
+    background:linear-gradient(135deg,#FAF7F2 0%,#F5EDE0 50%,#EEE5F5 100%);
+  }
+  .auth-card {
+    background:#fff; border-radius:24px; box-shadow:0 20px 60px rgba(0,0,0,0.10);
+    width:100%; max-width:440px; overflow:hidden;
+  }
+  .auth-header { padding:36px 40px 28px; border-bottom:1px solid rgba(0,0,0,0.06); text-align:center; }
+  .auth-logo { font-family:'Playfair Display',serif; font-size:28px; font-weight:900; color:#1A1A2E; }
+  .auth-logo span { color:#C9A96E; }
+  .auth-subtitle { font-size:13px; color:#888; margin-top:6px; }
+  .auth-tabs { display:flex; border-bottom:1px solid rgba(0,0,0,0.06); }
+  .auth-tab {
+    flex:1; padding:14px; text-align:center; font-size:14px; font-weight:600;
+    cursor:pointer; color:#888; border-bottom:3px solid transparent;
+    transition:all 0.2s;
+  }
+  .auth-tab.active { color:#1A1A2E; border-bottom-color:#C9A96E; }
+  .auth-body { padding:32px 40px 40px; }
+  .field { margin-bottom:20px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:#444; margin-bottom:8px; letter-spacing:0.5px; text-transform:uppercase; }
+  .field input {
+    width:100%; padding:12px 16px; border:2px solid rgba(0,0,0,0.1); border-radius:10px;
+    font-size:14px; color:#1A1A2E; background:#FAF7F2; transition:border-color 0.2s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .field input:focus { outline:none; border-color:#C9A96E; background:#fff; }
+  .btn-auth {
+    width:100%; padding:14px; background:#1A1A2E; color:#fff; border:none; border-radius:12px;
+    font-size:15px; font-weight:600; cursor:pointer; transition:all 0.2s; font-family:'DM Sans',sans-serif;
+    margin-top:8px;
+  }
+  .btn-auth:hover { background:#C9A96E; transform:translateY(-1px); box-shadow:0 8px 20px rgba(201,169,110,0.3); }
+  .auth-msg { margin-top:16px; padding:12px; border-radius:10px; font-size:13px; text-align:center; display:none; }
+  .auth-msg.success { background:#E8F5E9; color:#2E7D32; display:block; }
+  .auth-msg.error   { background:#FFEBEE; color:#C62828; display:block; }
+  .divider { text-align:center; color:#aaa; font-size:12px; margin:20px 0; position:relative; }
+  .divider::before,.divider::after { content:''; position:absolute; top:50%; width:42%; height:1px; background:rgba(0,0,0,0.08); }
+  .divider::before { left:0; } .divider::after { right:0; }
+  .demo-btn {
+    width:100%; padding:12px; background:#FAF7F2; color:#1A1A2E; border:2px solid rgba(0,0,0,0.1);
+    border-radius:12px; font-size:14px; font-weight:500; cursor:pointer; transition:all 0.2s;
+    font-family:'DM Sans',sans-serif;
+  }
+  .demo-btn:hover { border-color:#C9A96E; background:#FFF8F0; }
+  .panel-note { background:rgba(201,169,110,0.08); border:1px solid rgba(201,169,110,0.2); border-radius:10px; padding:12px 16px; font-size:12px; color:#8a6a30; margin-top:20px; text-align:center; }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="../index.html" class="logo">Try<span>ON</span>.ai</a>
+  <div class="nav-links">
+    <a href="clothes.html"   class="nav-link">👗 Clothes</a>
+    <a href="makeup.html"    class="nav-link">💄 Makeup</a>
+    <a href="analytics.html" class="nav-link">📊 Analytics</a>
+    <a href="size.html"      class="nav-link">📏 Size Finder</a>
+  </div>
+</nav>
+
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">Try<span>ON</span>.ai</div>
+      <div class="auth-subtitle">AI-Driven Virtual Try-On Ecosystem</div>
+    </div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="showTab('login')">Login</div>
+      <div class="auth-tab" onclick="showTab('register')">Register</div>
+    </div>
+
+    <div class="auth-body">
+
+      <!-- LOGIN FORM -->
+      <div id="login-form">
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="login-email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="login-password" placeholder="••••••••">
+        </div>
+        <button class="btn-auth" onclick="doLogin()">Sign In →</button>
+
+        <div class="divider">or</div>
+        <button class="demo-btn" onclick="doDemo()">▷ Continue as Guest (Demo Mode)</button>
+
+        <div class="panel-note">
+          🎓 FYP Demo: Use guest mode to explore all modules without registration
+        </div>
+      </div>
+
+      <!-- REGISTER FORM -->
+      <div id="register-form" style="display:none">
+        <div class="field">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" placeholder="Ayesha Khan">
+        </div>
+        <div class="field">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="reg-password" placeholder="Min 6 characters">
+        </div>
+        <button class="btn-auth" onclick="doRegister()">Create Account →</button>
+      </div>
+
+      <div class="auth-msg" id="auth-msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'http://localhost:5000/api';
+
+function showTab(tab) {
+  document.getElementById('login-form').style.display    = tab==='login'    ? 'block':'none';
+  document.getElementById('register-form').style.display = tab==='register' ? 'block':'none';
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>{
+    t.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1));
+  });
+  clearMsg();
+}
+
+function showMsg(msg, type) {
+  const el = document.getElementById('auth-msg');
+  el.textContent = msg;
+  el.className = 'auth-msg ' + type;
+}
+function clearMsg() {
+  document.getElementById('auth-msg').className = 'auth-msg';
+}
+
+async function doLogin() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) return showMsg('Please fill in all fields', 'error');
+
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      showMsg(`Welcome back, ${data.user.name}! Redirecting…`, 'success');
+      setTimeout(()=> location.href='../index.html', 1200);
+    } else {
+      showMsg(data.error || 'Login failed', 'error');
+    }
+  } catch(e) {
+    showMsg('Server not running — using demo mode', 'error');
+  }
+}
+
+async function doRegister() {
+  const name     = document.getElementById('reg-name').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!name||!email||!password) return showMsg('Please fill in all fields','error');
+
+  try {
+    const res = await fetch(`${API}/auth/register`, {
+      method:'POST', credentials:'include',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name, email, password})
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+      showMsg(`Account created! Welcome, ${data.user.name}!`, 'success');
+      setTimeout(()=> location.href='../index.html', 1200);
+    } else {
+      showMsg(data.error || 'Registration failed', 'error');
+    }
+  } catch(e) {
+    showMsg('Server not running — using demo mode', 'error');
+  }
+}
+
+function doDemo() {
+  const guest = {id:0, name:'Guest User', email:'demo@aifit.pk'};
+  localStorage.setItem('user', JSON.stringify(guest));
+  showMsg('Continuing as Guest…', 'success');
+  setTimeout(()=> location.href='../index.html', 800);
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const active = document.getElementById('register-form').style.display === 'block';
+    active ? doRegister() : doLogin();
+  }
+});
+</script>
+</body>
+</html>
