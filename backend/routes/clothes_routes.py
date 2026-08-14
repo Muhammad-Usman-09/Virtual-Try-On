@@ -15,6 +15,39 @@ from ai_engine.clothes.tryon_processor import process_clothes_tryon
 clothes_bp = Blueprint('clothes', __name__)
 
 
+def _resolve_cloth_type(product):
+    """
+    Map inventory clothing categories to CatVTON categories:
+        upper | lower | overall
+    """
+    sub_category = (product.sub_category or "").strip().lower()
+    product_name = (product.name or "").strip().lower()
+    text = f"{sub_category} {product_name}"
+
+    lower_keywords = {
+        "pant", "pants", "trouser", "trousers", "jean", "jeans",
+        "short", "shorts", "skirt", "leggings", "jogger", "joggers",
+        "shalwar", "pajama", "pajamas",
+    }
+    overall_keywords = {
+        "dress", "gown", "jumpsuit", "overall", "onepiece", "one-piece",
+        "frock", "maxi", "suit", "kameez",
+    }
+    upper_keywords = {
+        "shirt", "tshirt", "t-shirt", "tee", "top", "blouse",
+        "kurta", "hoodie", "jacket", "coat", "sweater", "cardigan",
+        "waistcoat", "vest",
+    }
+
+    if any(keyword in text for keyword in overall_keywords):
+        return "overall"
+    if any(keyword in text for keyword in lower_keywords):
+        return "lower"
+    if any(keyword in text for keyword in upper_keywords):
+        return "upper"
+    return "upper"
+
+
 @clothes_bp.route('/products', methods=['GET'])
 def get_clothing_products():
     """Return all clothing products from inventory"""
@@ -56,19 +89,22 @@ def clothes_tryon():
     try:
         # Save uploaded user image
         user_image_path = save_upload(file, 'uploads/clothes')
+        cloth_type = _resolve_cloth_type(product)
 
         # Run AI try-on
         result_image = process_clothes_tryon(
             user_image_path=user_image_path,
             garment_image_url=product.image_url,
-            product_name=product.name
+            product_name=product.name,
+            cloth_type=cloth_type
         )
 
         return jsonify({
             "success": True,
             "result_image": result_image,
             "product": product.to_dict(),
-            "message": f"Try-on complete for {product.name}"
+            "cloth_type": cloth_type,
+            "message": f"Try-on complete for {product.name} ({cloth_type})"
         })
 
     except Exception as e:
