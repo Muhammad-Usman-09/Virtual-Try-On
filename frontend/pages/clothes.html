@@ -143,8 +143,18 @@
       clearTimeout(hint);
 
       if (data.success) {
-        const debugType = data.cloth_type ? ` • mask: ${data.cloth_type}` : '';
-        showResultImage('resultArea', data.result_image, `✓ Wearing: ${data.product.name}${debugType}`);
+        const rawType = (data.cloth_type || '').toLowerCase();
+        const typeMap = {
+          upper:   { cls: 'mask-type-upper',   label: 'Upper' },
+          lower:   { cls: 'mask-type-lower',   label: 'Lower' },
+          overall: { cls: 'mask-type-overall', label: 'Overall' }
+        };
+        const picked = typeMap[rawType];
+        const badge = picked
+          ? `<span class="mask-type-badge ${picked.cls}">${picked.label}</span>`
+          : '<span class="mask-type-badge">Unknown</span>';
+        const labelHtml = `<span>✓ Wearing: ${data.product.name}</span>${badge}`;
+        showResultImage('resultArea', data.result_image, `<span class="result-label--with-badge">${labelHtml}</span>`);
       } else {
         showError('resultArea', data.error);
       }

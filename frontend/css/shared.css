@@ -169,6 +169,39 @@ nav {
 
 .result-wrap { width: 100%; max-width: 520px; text-align: center; }
 .result-label { font-size: 13px; font-weight: 600; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 16px; }
+.result-label--with-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--dark);
+  letter-spacing: 0.3px;
+  text-transform: none;
+}
+.mask-type-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  background: #E5E7EB;
+  color: #374151;
+}
+.mask-type-upper {
+  background: rgba(122, 158, 126, 0.16);
+  color: #2F6B37;
+}
+.mask-type-lower {
+  background: rgba(201, 169, 110, 0.22);
+  color: #7C560A;
+}
+.mask-type-overall {
+  background: rgba(232, 180, 184, 0.24);
+  color: #8C3B45;
+}
 .result-img { width: 100%; max-height: 540px; object-fit: contain; border-radius: var(--radius); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
 .download-btn {
   display: inline-block; margin-top: 16px;
